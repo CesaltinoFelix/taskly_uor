@@ -135,7 +135,7 @@ bool askCode = false;
                     isLoading = false;
                     });
                     Get.to(
-                      const HomeScreen(), 
+                       HomeScreen(), 
                       transition: Transition.rightToLeft, duration: const Duration(seconds: 1)
                       );
                     }

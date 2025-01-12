@@ -142,44 +142,44 @@ class _SignUpScreenState extends State<SignUpScreen> {
               onPressed: () async {
 
 
-                UserRepository userRepository = UserRepository();
+                // UserRepository userRepository = UserRepository();
 
-                  Map<String, dynamic> user = {
-                    'username': 'Cesaltino Felix',
-                    'password': '123456',
-                  };
+                //   Map<String, dynamic> user = {
+                //     'username': 'Cesaltino Felix',
+                //     'password': '123456',
+                //   };
 
-                  int userId = await userRepository.createUser(user);
-                  // Map<String, dynamic>? dados = await userRepository.getUserById(1);
-                  List<Map<String, dynamic>>? dados = await userRepository.getUsers();
-                  print('Dados>>>>>>>>: \n $dados');
+                //   int userId = await userRepository.createUser(user);
+                //   // Map<String, dynamic>? dados = await userRepository.getUserById(1);
+                //   List<Map<String, dynamic>>? dados = await userRepository.getUsers();
+                //   print('Dados>>>>>>>>: \n $dados');
 
-                // setState((){
-                //   isLoading = true;
-                // });
-                // String name = _nameController.text;
-                // String password = _passwordController.text;
-                // String confirmPassword = _confirmPasswordController.text;
+                setState((){
+                  isLoading = true;
+                });
+                String name = _nameController.text;
+                String password = _passwordController.text;
+                String confirmPassword = _confirmPasswordController.text;
 
-                // if (password == confirmPassword) {
-                //   Future.delayed(const Duration(seconds: 3), () {
-                //     setState((){
-                //     isLoading = false;
-                //     });
-                //     Get.to(
-                //       OTPScreen( name: name, number: completeNumber, password: password,), 
-                //       transition: Transition.rightToLeft, duration: const Duration(seconds: 1)
-                //       );
-                //     }
-                //   );
-                // } else {
-                //   Get.snackbar(
-                //     "Erro",
-                //  "As senhas não coincidem!",
-                //     backgroundColor: Colors.red,
-                //     colorText: ThemeColor.primaryText,
-                //   );
-                // }
+                if (password == confirmPassword) {
+                  Future.delayed(const Duration(seconds: 3), () {
+                    setState((){
+                    isLoading = false;
+                    });
+                    Get.to(
+                      OTPScreen( name: name, number: completeNumber, password: password,), 
+                      transition: Transition.rightToLeft, duration: const Duration(seconds: 1)
+                      );
+                    }
+                  );
+                } else {
+                  Get.snackbar(
+                    "Erro",
+                 "As senhas não coincidem!",
+                    backgroundColor: Colors.red,
+                    colorText: ThemeColor.primaryText,
+                  );
+                }
               },
             ),
 

@@ -218,3 +218,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 }
+
+UserRepository userRepository = UserRepository();
+
+void createUser() async {
+  Map<String, dynamic> user = {
+    'name': 'Alice',
+    'email': 'alice@example.com',
+    'password': '1234',
+  };
+
+  int userId = await userRepository.createUser(user);
+  print('Usuário criado com ID: $userId');
+}

@@ -46,7 +46,7 @@ bool askCode = false;
              Text(
               "Verificaçao OTP",
               style: TextStyle(
-                color: ThemeColor.primaryText,
+                color: ThemeColor.secondaryText,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -54,7 +54,7 @@ bool askCode = false;
              Row(
               children:  [
                  Text(
-                    "Ei, ${widget.name}!\nPor favor, insira o código de 5 dígitos enviado para você em",
+                    "Ei, ${widget.name}!\nInsira o código de 5 dígitos enviado para você",
                     style:  TextStyle(
                       color: ThemeColor.primaryText,
                       fontSize: 14,
@@ -161,7 +161,7 @@ bool askCode = false;
               },
               text: Text(
                 'Reenviar codigo',
-                style:  TextStyle(fontSize: 16, color: ThemeColor.accentText) ,
+                style:  TextStyle(fontSize: 16, color: ThemeColor.secondary) ,
               ),
               buttonType: ButtonType.text_button,
               textColor: ThemeColor.primaryText,

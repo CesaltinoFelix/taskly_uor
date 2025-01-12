@@ -29,7 +29,6 @@ class _SignInScreenState extends State<SignInScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo centralizado (opcional)
               Image.asset(
                 "assets/images/logo.png",
                 width: context.width * 0.60,
@@ -165,9 +164,8 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  // Substituir esta função com lógica de autenticação real
   Future<bool> authenticateUser(String phone, String password) async {
    
-    return Future.value(true); // Substituir lógica de autenticação real
+    return Future.value(true);
   }
 }

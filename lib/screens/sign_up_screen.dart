@@ -1,4 +1,5 @@
 import 'package:taskly_uor/common/color_extension.dart';
+import 'package:taskly_uor/repositories/user_repository.dart';
 import 'package:taskly_uor/screens/otp_screen.dart';
 import 'package:taskly_uor/screens/sign_in_screen.dart';
 import 'package:taskly_uor/widgets/round_button.dart';
@@ -139,32 +140,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
             RoundButton(
               title: "CONTINUAR",
               onPressed: () async {
-                setState((){
-                  isLoading = true;
-                });
-                String name = _nameController.text;
-                String password = _passwordController.text;
-                String confirmPassword = _confirmPasswordController.text;
 
-                if (password == confirmPassword) {
-                  Future.delayed(const Duration(seconds: 3), () {
-                    setState((){
-                    isLoading = false;
-                    });
-                    Get.to(
-                      OTPScreen( name: name, number: completeNumber, password: password,), 
-                      transition: Transition.rightToLeft, duration: const Duration(seconds: 1)
-                      );
-                    }
-                  );
-                } else {
-                  Get.snackbar(
-                    "Erro",
-                 "As senhas não coincidem!",
-                    backgroundColor: Colors.red,
-                    colorText: ThemeColor.primaryText,
-                  );
-                }
+
+                UserRepository userRepository = UserRepository();
+
+                  Map<String, dynamic> user = {
+                    'username': 'Cesaltino Felix',
+                    'password': '123456',
+                  };
+
+                  int userId = await userRepository.createUser(user);
+                  // Map<String, dynamic>? dados = await userRepository.getUserById(1);
+                  List<Map<String, dynamic>>? dados = await userRepository.getUsers();
+                  print('Dados>>>>>>>>: \n $dados');
+
+                // setState((){
+                //   isLoading = true;
+                // });
+                // String name = _nameController.text;
+                // String password = _passwordController.text;
+                // String confirmPassword = _confirmPasswordController.text;
+
+                // if (password == confirmPassword) {
+                //   Future.delayed(const Duration(seconds: 3), () {
+                //     setState((){
+                //     isLoading = false;
+                //     });
+                //     Get.to(
+                //       OTPScreen( name: name, number: completeNumber, password: password,), 
+                //       transition: Transition.rightToLeft, duration: const Duration(seconds: 1)
+                //       );
+                //     }
+                //   );
+                // } else {
+                //   Get.snackbar(
+                //     "Erro",
+                //  "As senhas não coincidem!",
+                //     backgroundColor: Colors.red,
+                //     colorText: ThemeColor.primaryText,
+                //   );
+                // }
               },
             ),
 

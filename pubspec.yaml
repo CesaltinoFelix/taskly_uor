@@ -41,8 +41,9 @@ dependencies:
   flutter_otp_text_field: ^1.2.0
   otp_timer_button: ^1.1.1
   sqflite: ^2.0.0+3
+  sqflite_common_ffi: ^2.2.8
   path_provider: ^2.0.1
-  
+  shared_preferences: ^2.0.9
 dev_dependencies:
   flutter_test:
     sdk: flutter

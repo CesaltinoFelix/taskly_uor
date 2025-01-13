@@ -45,4 +45,27 @@ class UserRepository {
       whereArgs: [id],
     );
   }
+
+  Future<bool> checkUserExistsByContact(String contact) async {
+    final db = await DatabaseService.getDatabase();
+    final result = await db.query(
+      'users',
+      where: 'contact = ?',
+      whereArgs: [contact],
+    );
+    return result.isNotEmpty;
+  }
+
+  Future<bool> checkUserPassword(String contact, String password) async {
+  final db = await DatabaseService.getDatabase();
+
+  final result = await db.query(
+    'users',
+    where: 'contact = ? AND password = ?',
+    whereArgs: [contact, password],
+  );
+
+  return result.isNotEmpty;
+}
+
 }

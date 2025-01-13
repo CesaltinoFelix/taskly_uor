@@ -21,8 +21,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  bool _isPasswordVisible = false; 
+  bool _isPasswordConfirmVisible = false; 
+
+
   String? completeNumber; 
   bool isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,7 +66,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  prefixIcon: Image.asset("assets/images/message.png",), 
+                  prefixIcon: Icon(Icons.mail, color: ThemeColor.primaryText),
                   labelText: "Name",
                   labelStyle:  TextStyle(color: ThemeColor.primaryText),
                   enabledBorder: OutlineInputBorder(
@@ -68,32 +83,61 @@ class _SignUpScreenState extends State<SignUpScreen> {
               
               const SizedBox(height: 20),
               
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                 prefixIcon: Image.asset("assets/images/password.png",),
-                  labelText: "Senha",
-                  labelStyle: TextStyle(color: ThemeColor.primaryText),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: ThemeColor.primaryText.withOpacity(0.1)), // Borda branca com transparência
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: ThemeColor.primaryText.withOpacity(0.1)), // Borda branca com transparência
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                style: TextStyle(color: ThemeColor.primaryText),
-              ),
+
+TextField(
+  controller: _passwordController,
+  obscureText: !_isPasswordVisible,
+  decoration: InputDecoration(
+    prefixIcon: Icon(Icons.lock, color: ThemeColor.primaryText),
+    labelText: "Senha",
+    labelStyle: TextStyle(color: ThemeColor.primaryText),
+    suffixIcon: IconButton(
+      icon: Icon(
+        _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+        color: ThemeColor.primaryText,
+      ),
+      onPressed: () {
+        setState(() {
+          _isPasswordVisible = !_isPasswordVisible;
+        });
+      },
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderSide: BorderSide(
+        color: ThemeColor.primaryText.withOpacity(0.1),
+      ),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderSide: BorderSide(
+        color: ThemeColor.primaryText.withOpacity(0.1),
+      ),
+      borderRadius: BorderRadius.circular(8),
+    ),
+  ),
+  style: TextStyle(color: ThemeColor.primaryText),
+),
+
               
               const SizedBox(height: 20),
               
               TextField(
                 controller: _confirmPasswordController,
-                obscureText: true, // Esconde o texto digitado
+                obscureText: !_isPasswordConfirmVisible, 
+                
                 decoration: InputDecoration(
-                  prefixIcon: Image.asset("assets/images/password.png"), // Ícone de cadeado
+                prefixIcon: Icon(Icons.lock, color: ThemeColor.primaryText),
+                 suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordConfirmVisible ? Icons.visibility : Icons.visibility_off,
+                    color: ThemeColor.primaryText,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordConfirmVisible = !_isPasswordConfirmVisible;
+                    });
+                  },
+                ),
                   labelText: "Confirmar Senha",
                   labelStyle: TextStyle(color: ThemeColor.primaryText),
                   enabledBorder: OutlineInputBorder(
@@ -137,54 +181,57 @@ class _SignUpScreenState extends State<SignUpScreen> {
             isLoading ? 
             const RoundButtonCircularProgress()
             : 
-            RoundButton(
+           RoundButton(
               title: "CONTINUAR",
               onPressed: () async {
-
-
-                // UserRepository userRepository = UserRepository();
-
-                //   Map<String, dynamic> user = {
-                //     'username': 'Cesaltino Felix',
-                //     'password': '123456',
-                //   };
-
-                //   int userId = await userRepository.createUser(user);
-                //   // Map<String, dynamic>? dados = await userRepository.getUserById(1);
-                //   List<Map<String, dynamic>>? dados = await userRepository.getUsers();
-                //   print('Dados>>>>>>>>: \n $dados');
-
-                setState((){
-                  isLoading = true;
-                });
                 String name = _nameController.text;
                 String password = _passwordController.text;
                 String confirmPassword = _confirmPasswordController.text;
 
-                if (password == confirmPassword) {
-
-                  Map<String, dynamic> user = {
-                  'name': 'Alice',
-                  'email': 'alice@example.com',
-                  'password': '1234',
-                };
-                  Future.delayed(const Duration(seconds: 3), () {
-                    setState((){
-                    isLoading = false;
-                    });
-                    // Get.to(
-                    //   OTPScreen( name: name, number: completeNumber, password: password,), 
-                    //   transition: Transition.rightToLeft, duration: const Duration(seconds: 1)
-                    //   );
-                    }
-                  );
-                } else {
+                 if (name.isEmpty || password.isEmpty || completeNumber == null || completeNumber!.isEmpty) {
                   Get.snackbar(
                     "Erro",
-                 "As senhas não coincidem!",
+                    "Por favor, preencha todos os campos.",
                     backgroundColor: Colors.red,
-                    colorText: ThemeColor.primaryText,
+                    colorText: ThemeColor.primary,
                   );
+                  return;
+                }
+
+                if (password.length < 8) {
+                Get.snackbar(
+                  "Erro",
+                  "A senha deve ter pelo menos 8 caracteres.",
+                  backgroundColor: Colors.red,
+                  colorText: ThemeColor.primary,
+                );
+                return;
+              }
+
+
+                if (password != confirmPassword) {
+                  Get.snackbar("Erro", "As senhas não coincidem!",
+                      backgroundColor: Colors.red,
+                      colorText: ThemeColor.primary);
+                  return;
+                }
+
+                setState(() => isLoading = true);
+
+                Map<String, dynamic> user = {
+                  'username': name,
+                  'contact': completeNumber,
+                  'password': password,
+                };
+
+                bool success = await createUser(user);
+
+                setState(() => isLoading = false);
+
+                if (success) {
+                  Get.to(SignInScreen(),
+                      transition: Transition.rightToLeft,
+                      duration: const Duration(seconds: 1));
                 }
               },
             ),
@@ -227,8 +274,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 UserRepository userRepository = UserRepository();
 
-void createUser(Map<String, dynamic> user) async {
+Future <bool> createUser(Map<String, dynamic> user) async {
+  String? contact = user['contact'];
 
-  int userId = await userRepository.createUser(user);
-  print('Usuário criado com ID: $userId');
+  // Verificar se o número já existe no banco de dados
+  bool exists = await userRepository.checkUserExistsByContact(contact!);
+
+  if (exists) {
+    Get.snackbar(
+      "Erro",
+      "Número de telefone já cadastrado!",
+      backgroundColor: Colors.red,
+      colorText: ThemeColor.primary,
+    );
+    return (false);
+  } else {
+    int userId = await userRepository.createUser(user);
+    Get.snackbar(
+      "Sucesso",
+      "Usuário criado com sucesso!",
+      backgroundColor: Colors.green,
+      colorText: ThemeColor.primary,
+    );
+    return (true);
+  }
 }

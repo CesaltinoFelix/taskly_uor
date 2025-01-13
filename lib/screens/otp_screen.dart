@@ -126,7 +126,7 @@ bool askCode = false;
                       "Sucesso",
                        "Conta Criada: ${widget.name}, ${widget.number}",
                       backgroundColor: Colors.green[400],
-                      colorText: ThemeColor.secondaryText,
+                      colorText: ThemeColor.primary,
                       duration: const Duration(seconds: 3),
                     );
 

@@ -1,43 +1,160 @@
 import 'package:flutter/material.dart';
 import 'package:taskly_uor/common/color_extension.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taskly_uor/screens/sign_in_screen.dart';
+import 'package:taskly_uor/repositories/task_repository.dart'; 
+import 'package:taskly_uor/screens/task_screen.dart';
 
-class HomeScreen extends StatelessWidget {
-  final List<Task> tasks = [
-    Task('Comprar mantimentos', '10:00 - 11:00', 'Ir ao supermercado'),
-    Task('Reunião de trabalho', '12:00 - 13:00', 'Videoconferência com a equipe'),
-    Task('Exercícios', '18:00 - 19:00', 'Caminhada no parque'),
-  ];
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Map<String, dynamic>> tasks = [];  
+
+  final TaskRepository _taskRepository = TaskRepository();
+  String? userPhone = '';
+  
+  @override
+  void initState() {
+    super.initState();
+    _getUserData();
+    _loadTasks();  
+  }
+
+  void _loadTasks() async {
+    final loadedTasks = await _taskRepository.getTasks();  
+    print(loadedTasks);
+    return;
+    setState(() {
+      tasks = loadedTasks;
+    });
+  }
+
+  void _markAsDone(int taskId) async {
+    await _taskRepository.markTaskAsDone(taskId);  
+    _loadTasks();  
+  }
+
+  void _deleteTask(int taskId) async {
+    await _taskRepository.deleteTask(taskId);  
+    _loadTasks();  
+  }
+
+  void _getUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userPhone = prefs.getString('contact') ?? "Usuário"; 
+    });
+  }
+
+  void _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();  
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const SignInScreen()),
+    );
+  }
+
+  void _navigateToAddTaskScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TaskCreateScreen()), // Navegação para AddTaskScreen
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Minhas Tarefas'),
+        title: const Text('Minhas Tarefas'),
         backgroundColor: ThemeColor.secondary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.exit_to_app),
+            onPressed: _logout, 
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ListView.builder(
-          itemCount: tasks.length,
-          itemBuilder: (context, index) {
-            return Card(
-              elevation: 5,
-              margin: EdgeInsets.symmetric(vertical: 8),
-              child: ListTile(
-                leading: Icon(Icons.check_circle, color: Colors.green),
-                title: Text(
-                  tasks[index].title,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                subtitle: Text(
-                  '${tasks[index].time}\n${tasks[index].description}',
-                  style: TextStyle(color: Colors.black54),
-                ),
-                isThreeLine: true,
-              ),
-            );
-          },
-        ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              "Bem-vindo(a), \n$userPhone!",
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: ListView.builder(
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                return Card(
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        task['is_done'] == 1 ? Icons.check_circle : Icons.radio_button_unchecked,
+                        color: task['is_done'] == 1 ? Colors.green : Colors.grey,
+                        size: 36,
+                      ),
+                      title: Text(
+                        task['title'],
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            task['time'],
+                            style: const TextStyle(
+                                color: Colors.black87, fontSize: 14),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            task['description'],
+                            style: const TextStyle(
+                                color: Colors.black54, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      trailing: PopupMenuButton<String>(
+                        onSelected: (action) {
+                          if (action == 'edit') {
+                            
+                          } else if (action == 'delete') {
+                            _deleteTask(task['id']);
+                          } else if (action == 'mark_done') {
+                            _markAsDone(task['id']); 
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(value: 'edit', child: Text('Editar')),
+                          PopupMenuItem(value: 'delete', child: Text('Excluir')),
+                          PopupMenuItem(value: 'mark_done', child: Text('Concluir')),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -57,14 +174,11 @@ class HomeScreen extends StatelessWidget {
         selectedItemColor: ThemeColor.secondary,
         unselectedItemColor: Colors.grey,
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToAddTaskScreen, // Ao clicar, vai para a tela de cadastro
+        child: const Icon(Icons.add),
+        backgroundColor: ThemeColor.secondary,
+      ),
     );
   }
-}
-
-class Task {
-  final String title;
-  final String time;
-  final String description;
-
-  Task(this.title, this.time, this.description);
 }

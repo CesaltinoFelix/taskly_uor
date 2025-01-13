@@ -1,11 +1,13 @@
-import 'package:taskly_uor/common/color_extension.dart';
 import 'package:taskly_uor/screens/home_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get/get.dart';
+import 'package:taskly_uor/common/color_extension.dart';
 import 'package:taskly_uor/screens/sign_up_screen.dart';
 import 'package:taskly_uor/widgets/round_button.dart';
 import 'package:taskly_uor/widgets/round_button_circular_progress.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:taskly_uor/repositories/user_repository.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -19,6 +21,23 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _passwordController = TextEditingController();
   String? completeNumber;
   bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  // Verifica se o usuário já está logado
+  void _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? contact = prefs.getString('contact');
+    
+    if (contact != null && contact.isNotEmpty) {
+      // Se o usuário já estiver logado, redireciona para a HomeScreen
+      Get.to(HomeScreen(), transition: Transition.rightToLeft, duration: const Duration(seconds: 1));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +82,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 onChanged: (phone) {
                   completeNumber = phone.completeNumber;
                 },
-                style:  TextStyle(color: ThemeColor.secondaryText),
+                style: TextStyle(color: ThemeColor.secondaryText),
                 dropdownTextStyle: TextStyle(color: ThemeColor.primaryText),
               ),
 
@@ -99,27 +118,47 @@ class _SignInScreenState extends State<SignInScreen> {
                           isLoading = true;
                         });
 
-                        String phone = _phoneController.text;
+                        String phone = completeNumber ?? '';
                         String password = _passwordController.text;
 
+                        // Validação dos campos
+                        if (phone.isEmpty) {
+                          Get.snackbar(
+                            "Erro",
+                            "Por favor, insira um número de telefone.",
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
+                          setState(() {
+                            isLoading = false;
+                          });
+                          return;
+                        }
+
+                        if (password.isEmpty) {
+                          Get.snackbar(
+                            "Erro",
+                            "Por favor, insira a senha.",
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
+                          setState(() {
+                            isLoading = false;
+                          });
+                          return;
+                        }
+
                         try {
-                          await Future.delayed(const Duration(seconds: 2));
+                          // Chamando a função de autenticação
+                          bool authenticated = await authenticateUser(phone, password);
 
-                          final isAuthenticated = await authenticateUser(phone, password);
-
-                          if (isAuthenticated) {
-                            Get.to( HomeScreen(), transition: Transition.rightToLeft, duration: const Duration(seconds: 1));
-                          } else {
-                            Get.snackbar(
-                               "Erro",
-                              "Credenciais invalidas",
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white,
-                            );
+                          if (authenticated) {
+                            Get.to(HomeScreen(), transition: Transition.rightToLeft, duration: const Duration(seconds: 1));
                           }
+
                         } catch (e) {
                           Get.snackbar(
-                           "Error",
+                            "Erro",
                             "Ocorreu um erro. Por favor, tente novamente mais tarde.",
                             backgroundColor: Colors.red,
                             colorText: Colors.white,
@@ -165,7 +204,36 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Future<bool> authenticateUser(String phone, String password) async {
-   
-    return Future.value(true);
+    UserRepository userRepository = UserRepository();
+    
+    bool userExists = await userRepository.checkUserExistsByContact(phone);
+    
+    if (!userExists) {
+      Get.snackbar(
+        "Erro",
+        "Usuário não encontrado!",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
+    bool passwordMatches = await userRepository.checkUserPassword(phone, password);
+
+    if (!passwordMatches) {
+      Get.snackbar(
+        "Erro",
+        "Senha incorreta!",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
+    // Salva o número de telefone no SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('contact', phone);
+    
+    return true;
   }
 }

@@ -1,6 +1,4 @@
 import 'package:taskly_uor/services/database_service.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart'; // Para buscar o caminho do banco de dados
 
 class TaskRepository {
 

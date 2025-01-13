@@ -162,14 +162,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 String confirmPassword = _confirmPasswordController.text;
 
                 if (password == confirmPassword) {
+
+                  Map<String, dynamic> user = {
+                  'name': 'Alice',
+                  'email': 'alice@example.com',
+                  'password': '1234',
+                };
                   Future.delayed(const Duration(seconds: 3), () {
                     setState((){
                     isLoading = false;
                     });
-                    Get.to(
-                      OTPScreen( name: name, number: completeNumber, password: password,), 
-                      transition: Transition.rightToLeft, duration: const Duration(seconds: 1)
-                      );
+                    // Get.to(
+                    //   OTPScreen( name: name, number: completeNumber, password: password,), 
+                    //   transition: Transition.rightToLeft, duration: const Duration(seconds: 1)
+                    //   );
                     }
                   );
                 } else {
@@ -221,12 +227,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 UserRepository userRepository = UserRepository();
 
-void createUser() async {
-  Map<String, dynamic> user = {
-    'name': 'Alice',
-    'email': 'alice@example.com',
-    'password': '1234',
-  };
+void createUser(Map<String, dynamic> user) async {
 
   int userId = await userRepository.createUser(user);
   print('Usuário criado com ID: $userId');

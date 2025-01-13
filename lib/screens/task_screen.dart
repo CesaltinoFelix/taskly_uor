@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:taskly_uor/common/color_extension.dart';
 import 'package:taskly_uor/repositories/task_repository.dart';
+import 'package:taskly_uor/screens/home_screen.dart';
 import 'package:taskly_uor/widgets/round_button.dart';
 import 'package:taskly_uor/widgets/round_button_circular_progress.dart';
 
@@ -152,7 +153,10 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      // Navegar para a tela de tarefas
+                      Get.to(
+                       HomeScreen(), 
+                     
+                      );
                     },
                     child: Text(
                       "Ver tarefas",
@@ -172,6 +176,9 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
   }
   TaskRepository taskRepository = TaskRepository();
   Future<bool> createTask(Map<String, dynamic> task) async {
+     
+      // taskRepository.deleteAllTasks();
+      // return true;
        if (task['title'] == null || task['title'] == '') {
       Get.snackbar(
         "Erro",
@@ -184,8 +191,8 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
       return false;
     }
 
-    task['user_id'] = task['user_id'] ?? 'default_user_id';
-    task['is_done'] = task['is_done'] ?? false; 
+    task['user_id'] = task['user_id'] ?? 1;
+    task['is_done'] = task['is_done'] ?? 0; 
     task['created_at'] = task['created_at'] ?? DateTime.now().toIso8601String();
     task['description'] = task['description'] ?? ''; 
 

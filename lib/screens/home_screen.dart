@@ -11,7 +11,6 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> tasks = [];  
 
@@ -27,8 +26,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _loadTasks() async {
     final loadedTasks = await _taskRepository.getTasks();  
-    print(loadedTasks);
-    return;
+    loadedTasks.forEach((task) {
+      print('Task ID: ${task['id']}, Title: ${task['title']}, Done: ${task['is_done']}, data: ${task['created_at']} ');
+    });
     setState(() {
       tasks = loadedTasks;
     });
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _getUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      userPhone = prefs.getString('contact') ?? "Usuário"; 
+      userPhone = prefs.getString('contact') ?? "Usuário";  // Atribui "Usuário" se userPhone for nulo
     });
   }
 
@@ -63,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _navigateToAddTaskScreen() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const TaskCreateScreen()), // Navegação para AddTaskScreen
+      MaterialPageRoute(builder: (context) => const TaskCreateScreen()),
     );
   }
 
@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              "Bem-vindo(a), \n$userPhone!",
+              "Bem-vindo(a), \n${userPhone ?? 'Usuário'}!",  // Verificação de nulo antes de imprimir
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
           ),
@@ -175,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.grey,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToAddTaskScreen, // Ao clicar, vai para a tela de cadastro
+        onPressed: _navigateToAddTaskScreen,
         child: const Icon(Icons.add),
         backgroundColor: ThemeColor.secondary,
       ),

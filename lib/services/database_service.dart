@@ -11,10 +11,9 @@ class DatabaseService {
     // Caminho do banco de dados
     final String path = join(await getDatabasesPath(), 'taskly_uor.db');
 
-    // Criação e atualização do banco de dados
     _database = await openDatabase(
       path,
-      version: 2, // Atualize a versão do banco
+      version: 3, // Atualize a versão do banco
       onCreate: (Database db, int version) async {
         // Criação da tabela de usuários
         await db.execute('''
@@ -34,16 +33,25 @@ class DatabaseService {
             title TEXT,
             description TEXT,
             is_done INTEGER,
-            created_at TEXT,
+            created_at INTEGER,
             FOREIGN KEY(user_id) REFERENCES users(id)
           )
         ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        // Adiciona as colunas 'created_at' e 'contact' nas tabelas 'tasks' e 'users', respectivamente, caso a versão seja atualizada
         if (oldVersion < 2) {
           await db.execute('ALTER TABLE users ADD COLUMN contact TEXT');
-          await db.execute('ALTER TABLE tasks ADD COLUMN created_at TEXT');
+        }
+
+        if (oldVersion < 3) {
+          // Verifica se a coluna 'created_at' já existe na tabela 'tasks'
+          var columns = await db.rawQuery("PRAGMA table_info(tasks);");
+          bool columnExists = columns.any((column) => column['name'] == 'created_at');
+          
+          // Se a coluna não existir, adicione-a
+          if (!columnExists) {
+            await db.execute('ALTER TABLE tasks ADD COLUMN created_at INTEGER');
+          }
         }
       },
     );

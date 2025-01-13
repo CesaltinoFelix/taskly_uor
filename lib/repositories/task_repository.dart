@@ -59,7 +59,7 @@ class TaskRepository {
       final db = await DatabaseService.getDatabase();
       return await db.delete(
         'tasks',
-        where: 'id = ?',
+        where: 'id != ?',
         whereArgs: [id],
       );
     } catch (e) {
@@ -107,6 +107,18 @@ class TaskRepository {
       );
     } catch (e) {
       rethrow;
+    }
+  }
+
+  Future<void> deleteAllTasks() async {
+    final db = await DatabaseService.getDatabase();
+
+    try {
+      // Comando SQL para deletar todas as tarefas
+      await db.delete('tasks');
+      print("Todas as tarefas foram excluídas com sucesso.");
+    } catch (e) {
+      print("Erro ao excluir tarefas: $e");
     }
   }
 }

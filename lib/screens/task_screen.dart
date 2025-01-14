@@ -60,10 +60,10 @@ Future<void> _selectDate(BuildContext context) async {
     return Scaffold(
       appBar: AppBar(
         title:  Text(
-                "Crie uma nova tarefa",
+                "Criar nova tarefa",
                 style: TextStyle(
                   color: ThemeColor.secondary,
-                  fontSize: 18,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   
                 ),
@@ -88,11 +88,7 @@ Future<void> _selectDate(BuildContext context) async {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 50),
-              Image.asset(
-                "assets/images/logo.png", // Logo da aplicação
-                width: context.width * 0.60,
-              ),
+             
               const SizedBox(height: 20),
           
 

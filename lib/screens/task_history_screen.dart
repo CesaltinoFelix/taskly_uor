@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:taskly_uor/common/color_extension.dart';
 import 'package:intl/intl.dart';
+import 'package:taskly_uor/repositories/task_repository.dart';
+import 'package:taskly_uor/screens/home_screen.dart';
+
 
 void main() {
   runApp(TaskRegistrationApp());
@@ -10,68 +14,89 @@ class TaskRegistrationApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.orange),
       home: TaskHistoryScreen(),
     );
   }
 }
 
-class TaskHistoryScreen extends StatelessWidget {
-  final List<Map<String, dynamic>> tasks = [
-    {
-      'title': 'Tarefa número 01',
-      'workTime': '3h 10m',
-      'taskDate': '03/08/22',
-      'status': 'Concluído'
-    },
-    {
-      'title': 'Tarefa número 02',
-      'workTime': '2h 45m',
-      'taskDate': '18/11/22',
-      'status': 'Concluído'
-    },
-    {
-      'title': 'Tarefa número 03',
-      'workTime': '4h 30m',
-      'taskDate': '25/12/22',
-      'status': 'Concluído'
-    },
-  ];
+class TaskHistoryScreen extends StatefulWidget {
+  @override
+  _TaskHistoryScreenState createState() => _TaskHistoryScreenState();
+}
+
+class _TaskHistoryScreenState extends State<TaskHistoryScreen> {
+    final TaskRepository _taskRepository = TaskRepository();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  // Carrega as tarefas concluídas do banco de dados
+
+  String formatDate(String date) {
+    try {
+      final parsedDate = DateFormat('dd/MM/yy').parse(date);
+      return DateFormat('dd MMM yyyy').format(parsedDate);
+    } catch (e) {
+      return 'Data inválida';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Histórico de Tarefas'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        title: Text(
+          'Histórico de Tarefas',
+          style: TextStyle(
+            color: ThemeColor.secondary,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          )
-        ],
+        leading: Padding(
+          padding: EdgeInsets.only(left: 16),
+          child: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black87),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        backgroundColor: ThemeColor.primary,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Hoje',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-            ),
+            
             SizedBox(height: 8),
-            ...tasks.map((task) => TaskCard(task: task)).toList(),
+            Expanded(
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: _taskRepository.getCompletedTasks(), // Use o futuro aqui
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Erro ao carregar tarefas.'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text('Nenhuma tarefa concluída.'));
+                  } else {
+                    final tasks = snapshot.data!;
+                    return ListView.builder(
+                      itemCount: tasks.length,
+                      itemBuilder: (context, index) {
+                        final task = tasks[index];
+                        return TaskCard(task: task);
+                      },
+                    );
+                  }
+                },
+              ),
+            )
+
           ],
         ),
       ),
@@ -90,10 +115,17 @@ class TaskHistoryScreen extends StatelessWidget {
             label: 'Estatísticas',
           ),
         ],
-        selectedItemColor: Colors.orange,
+        selectedItemColor: ThemeColor.secondary,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
-          // Lógica para navegação
+          if (index == 1) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(),
+          ),
+        );
+      }
         },
       ),
     );
@@ -104,6 +136,15 @@ class TaskCard extends StatelessWidget {
   final Map<String, dynamic> task;
 
   TaskCard({required this.task});
+
+  String formatDate(String date) {
+    try {
+      final parsedDate = DateFormat('dd/MM/yy').parse(date);
+      return DateFormat('dd MMM yyyy').format(parsedDate);
+    } catch (e) {
+      return 'Data inválida';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,23 +163,23 @@ class TaskCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  task['title'],
+                  task['title'] ?? "Descohecido",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 8),
-                Text('Tempo de trabalho: ${task['workTime']}'),
-                Text('Data da Tarefa: ${task['taskDate']}'),
+                Text('Tempo de trabalho: Descohecido'),
+                Text('Data da Tarefa: ${formatDate(task['time'] ?? "Descohecido")}'),
               ],
             ),
             Text(
-              task['status'],
+                "Concluido",
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Colors.orange,
+                color: ThemeColor.secondary,
               ),
             ),
           ],

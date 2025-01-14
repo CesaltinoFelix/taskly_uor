@@ -27,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _loadTasks() async {
     final loadedTasks = await _taskRepository.getTasks();
-    print(loadedTasks);
     setState(() {
       tasks = loadedTasks;
     });
@@ -95,7 +94,7 @@ String formatTaskCreationDate(String createdAt) {
   }
 
   
-  int _currentIndex = 0;
+  int _currentIndex = 1;
 
   void _onTabTapped(int index) {
     setState(() {
@@ -212,23 +211,20 @@ Color _getSelectedItemColor(int index) {
         items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.history, color: _getSelectedItemColor(0)),
-          label: '',
+          label: 'Histórico',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.grid_view, color: _getSelectedItemColor(1)),
-          label: '',
+          label: 'Tarefas',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.analytics, color: _getSelectedItemColor(2)),
-          label: '',
+          label: 'Estatísticas',
         ),
       ],
         currentIndex: _currentIndex,
         selectedItemColor: ThemeColor.secondary,
         unselectedItemColor: Colors.grey,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        backgroundColor: Colors.white,
         onTap: _onTabTapped
       ),
     );
@@ -325,14 +321,14 @@ void _showUnmarkDialog(int taskId) {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Fecha o diálogo sem fazer nada
+              Navigator.of(context).pop();
             },
             child: const Text('Cancelar'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Fecha o diálogo
-              _unmarkAsDone(taskId); // Executa a ação de desconcluir
+              Navigator.of(context).pop();
+              _unmarkAsDone(taskId);
             },
             child:  Text(
               'Sim',

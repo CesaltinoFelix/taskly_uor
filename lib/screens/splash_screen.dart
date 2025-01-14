@@ -48,7 +48,7 @@ Widget build(BuildContext context) {
         ),
         
         Positioned(
-          bottom: 350, 
+          bottom: context.width * 0.50, 
           child: CircularProgressIndicator(
             color: ThemeColor.secondary,
             strokeWidth: 6,

@@ -59,7 +59,7 @@ class TaskRepository {
       final db = await DatabaseService.getDatabase();
       return await db.delete(
         'tasks',
-        where: 'id != ?',
+        where: 'id = ?',
         whereArgs: [id],
       );
     } catch (e) {

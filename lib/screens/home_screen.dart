@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taskly_uor/common/color_extension.dart';
 import 'package:taskly_uor/repositories/task_repository.dart';
 import 'package:taskly_uor/screens/sign_in_screen.dart';
+import 'package:taskly_uor/screens/task_history_screen.dart';
 import 'package:taskly_uor/screens/task_screen.dart';
-
+import 'package:intl/intl.dart'; // Para formatar a data
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -25,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _loadTasks() async {
     final loadedTasks = await _taskRepository.getTasks();
+    print(loadedTasks);
     setState(() {
       tasks = loadedTasks;
     });
@@ -47,6 +50,34 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+String formatTaskTime(dynamic time) {
+  if (time == null || time is String && time.isEmpty) {
+    return 'Sem data definida';
+  }
+  
+  DateTime parsedDate = DateTime.tryParse(time) ?? DateTime.now();
+  
+  return DateFormat('dd/MM/yyyy').format(parsedDate);
+}
+
+
+String formatTaskCreationDate(String createdAt) {
+  final DateTime createdDate = DateTime.parse(createdAt);
+  final DateTime now = DateTime.now();
+
+  final Duration difference = now.difference(createdDate);
+
+  if (difference.inDays == 0) {
+    return 'Hoje';
+  } else if (difference.inDays == 1) {
+    return 'Ontem';
+  } else if (difference.inDays == 2) {
+    return 'Antes de ontem';
+  } else {
+    return 'Há ${difference.inDays} dias';
+  }
+}
+
   void _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
@@ -59,10 +90,35 @@ class _HomeScreenState extends State<HomeScreen> {
   void _goToCreateTaskScreen() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const TaskCreateScreen()),
+      MaterialPageRoute(builder: (context) =>  TaskCreateScreen()),
     ).then((_) => _loadTasks());
   }
 
+  
+  int _currentIndex = 0;
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+      if (index == 0) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TaskHistoryScreen(),
+          ),
+        );
+      }
+      // Implementar navegação para outras telas, se necessário
+    });
+  }
+
+Color _getSelectedItemColor(int index) {
+  if (_currentIndex == index) {
+    return ThemeColor.secondary; // Cor do item selecionado
+  } else {
+    return Colors.grey; // Cor do item não selecionado
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,10 +132,10 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.black87,
           ),
         ),
-        title: const Text(
+        title:  Text(
           'Minhas tarefas',
           style: TextStyle(
-            color: Colors.orange,
+            color: ThemeColor.secondary,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -122,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 16, bottom: 8),
               child: Text(
-                task['created_at'] ?? '',
+                formatTaskCreationDate(task['created_at']),
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.black54,
@@ -130,10 +186,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           _buildTaskCard(
-            taskId: task['id'], // Passa o taskId corretamente
+            taskId: task['id'],
             title: task['title'],
             description: task['description'],
-            time: "12h",
+            time: formatTaskTime(task['time']),
             isDone: task['is_done'] == 1,
             onDelete: () => _deleteTask(task['id']),
             onMarkDone: () => _markAsDone(task['id']),
@@ -149,35 +205,37 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _goToCreateTaskScreen,
-        backgroundColor: Colors.orange,
+        backgroundColor: ThemeColor.secondary,
         child: const Icon(Icons.add),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.grid_view),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: '',
-          ),
-        ],
-        selectedItemColor: Colors.orange,
+        items: [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.history, color: _getSelectedItemColor(0)),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.grid_view, color: _getSelectedItemColor(1)),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.analytics, color: _getSelectedItemColor(2)),
+          label: '',
+        ),
+      ],
+        currentIndex: _currentIndex,
+        selectedItemColor: ThemeColor.secondary,
         unselectedItemColor: Colors.grey,
         showSelectedLabels: false,
         showUnselectedLabels: false,
         backgroundColor: Colors.white,
+        onTap: _onTabTapped
       ),
     );
   }
 
 Widget _buildTaskCard({
-  required int taskId,  // Alterado para receber o ID como parâmetro
+  required int taskId,
   required String title,
   required String description,
   required String time,
@@ -215,7 +273,7 @@ Widget _buildTaskCard({
             Icon(
               Icons.access_time,
               size: 16,
-              color: isDone ? Colors.green : Colors.orange,
+              color: isDone ? Colors.green : ThemeColor.secondary,
             ),
             const SizedBox(width: 4),
             Text(
@@ -240,9 +298,9 @@ Widget _buildTaskCard({
               ),
               onPressed: () {
                 if (isDone) {
-                  _showUnmarkDialog(taskId); // Agora passa o taskId correto
+                  _showUnmarkDialog(taskId);
                 } else {
-                  onMarkDone(); // Marca como concluída
+                  onMarkDone();
                 }
               },
             ),
@@ -276,9 +334,9 @@ void _showUnmarkDialog(int taskId) {
               Navigator.of(context).pop(); // Fecha o diálogo
               _unmarkAsDone(taskId); // Executa a ação de desconcluir
             },
-            child: const Text(
+            child:  Text(
               'Sim',
-              style: TextStyle(color: Colors.orange),
+              style: TextStyle(color: ThemeColor.secondary),
             ),
           ),
         ],

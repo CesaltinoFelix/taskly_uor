@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart'; // Para formatar a data
 import 'package:taskly_uor/common/color_extension.dart';
 import 'package:taskly_uor/repositories/task_repository.dart';
 import 'package:taskly_uor/screens/home_screen.dart';
@@ -16,7 +17,36 @@ class TaskCreateScreen extends StatefulWidget {
 class _TaskCreateScreenState extends State<TaskCreateScreen> {
   final TextEditingController _taskTitleController = TextEditingController();
   final TextEditingController _taskDescriptionController = TextEditingController();
+  DateTime? selectedDate;
   bool _isLoading = false;
+
+  // Função para selecionar a data
+Future<void> _selectDate(BuildContext context) async {
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime.now(),
+    lastDate: DateTime(2101),
+    builder: (BuildContext context, Widget? child) {
+      return Theme(
+        data: ThemeData.light().copyWith(
+          primaryColor: ThemeColor.secondary, 
+          colorScheme: ColorScheme.light(
+            primary: ThemeColor.secondary, 
+            onPrimary: Colors.white, 
+          ),
+          buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+        ),
+        child: child!,
+      );
+    },
+  );
+  if (picked != null && picked != selectedDate)
+    setState(() {
+      selectedDate = picked;
+    });
+}
+
 
   @override
   void dispose() {
@@ -28,6 +58,30 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title:  Text(
+                "Crie uma nova tarefa",
+                style: TextStyle(
+                  color: ThemeColor.secondary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  
+                ),
+              ),
+
+        leading:  Padding(
+          padding: EdgeInsets.only(left: 16),
+          child: IconButton(
+          icon:  Icon(Icons.arrow_back, color:  Colors.black87,),
+          onPressed: () {
+            Get.to(HomeScreen());
+          },
+        ),
+
+ 
+        ),
+        backgroundColor: ThemeColor.primary, // Ajuste o fundo conforme necessário
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -36,19 +90,11 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
             children: [
               const SizedBox(height: 50),
               Image.asset(
-                "assets/images/logo.png",  // Logo da aplicação
+                "assets/images/logo.png", // Logo da aplicação
                 width: context.width * 0.60,
               ),
               const SizedBox(height: 20),
-              Text(
-                "Crie uma nova tarefa",
-                style: TextStyle(
-                  color: ThemeColor.primaryText,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 40),
+          
 
               // Título da tarefa
               TextField(
@@ -88,7 +134,27 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
                   ),
                 ),
                 style: TextStyle(color: ThemeColor.primaryText),
-                maxLines: 5,  // Permite várias linhas para a descrição
+                maxLines: 5, // Permite várias linhas para a descrição
+              ),
+
+              const SizedBox(height: 20),
+
+              // Seletor de data
+              GestureDetector(
+                onTap: () => _selectDate(context),
+                child: AbsorbPointer(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      labelText: selectedDate == null
+                          ? 'Data da Tarefa'
+                          : DateFormat('dd/MM/yyyy').format(selectedDate!),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                  ),
+                ),
               ),
 
               const SizedBox(height: 40),
@@ -103,7 +169,7 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
                         String taskDescription = _taskDescriptionController.text;
 
                         // Validações para garantir que os campos não estão vazios
-                        if (taskTitle.isEmpty || taskDescription.isEmpty) {
+                        if (taskTitle.isEmpty || taskDescription.isEmpty || selectedDate == null) {
                           Get.snackbar(
                             "Erro",
                             "Por favor, preencha todos os campos.",
@@ -121,6 +187,7 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
                         bool success = await createTask({
                           'title': taskTitle,
                           'description': taskDescription,
+                          'time': selectedDate?.toIso8601String() ?? '',
                         });
 
                         setState(() {
@@ -153,10 +220,7 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      Get.to(
-                       HomeScreen(), 
-                     
-                      );
+                      Get.to(HomeScreen());
                     },
                     child: Text(
                       "Ver tarefas",
@@ -174,12 +238,10 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
       ),
     );
   }
+
   TaskRepository taskRepository = TaskRepository();
   Future<bool> createTask(Map<String, dynamic> task) async {
-     
-      // taskRepository.deleteAllTasks();
-      // return true;
-       if (task['title'] == null || task['title'] == '') {
+    if (task['title'] == null || task['title'] == '') {
       Get.snackbar(
         "Erro",
         "O título da tarefa é obrigatório.",
@@ -192,11 +254,11 @@ class _TaskCreateScreenState extends State<TaskCreateScreen> {
     }
 
     task['user_id'] = task['user_id'] ?? 1;
-    task['is_done'] = task['is_done'] ?? 0; 
+    task['is_done'] = task['is_done'] ?? 0;
     task['created_at'] = task['created_at'] ?? DateTime.now().toIso8601String();
-    task['description'] = task['description'] ?? ''; 
+    task['description'] = task['description'] ?? '';
 
     await taskRepository.createTask(task);
-    return true;  
+    return true;
   }
 }

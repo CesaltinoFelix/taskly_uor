@@ -82,6 +82,20 @@ class TaskRepository {
     }
   }
 
+  Future<int> markTaskAsUndone(int id) async {
+    try {
+      final db = await DatabaseService.getDatabase();
+      return await db.update(
+        'tasks',
+        {'is_done': 0},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // Função para obter tarefas concluídas
   Future<List<Map<String, dynamic>>> getCompletedTasks() async {
     try {

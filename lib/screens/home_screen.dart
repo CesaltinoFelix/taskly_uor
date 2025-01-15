@@ -166,39 +166,39 @@ Color _getSelectedItemColor(int index) {
             ),
             const SizedBox(height: 8),
             Expanded(
-  child: ListView.builder(
-    itemCount: tasks.length,
-    itemBuilder: (context, index) {
-      final task = tasks[index];
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (index == 0 || task['created_at'] != tasks[index - 1]['created_at'])
-            Padding(
-              padding: const EdgeInsets.only(top: 16, bottom: 8),
-              child: Text(
-                formatTaskCreationDate(task['created_at']),
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
-              ),
+            child: ListView.builder(
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (index == 0 || task['created_at'] != tasks[index - 1]['created_at'])
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16, bottom: 8),
+                        child: Text(
+                          formatTaskCreationDate(task['created_at']),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                    _buildTaskCard(
+                      taskId: task['id'],
+                      title: task['title'],
+                      description: task['description'],
+                      time: formatTaskTime(task['time']),
+                      isDone: task['is_done'] == 1,
+                      onDelete: () => _deleteTask(task['id']),
+                      onMarkDone: () => _markAsDone(task['id']),
+                    ),
+                  ],
+                );
+              },
             ),
-          _buildTaskCard(
-            taskId: task['id'],
-            title: task['title'],
-            description: task['description'],
-            time: formatTaskTime(task['time']),
-            isDone: task['is_done'] == 1,
-            onDelete: () => _deleteTask(task['id']),
-            onMarkDone: () => _markAsDone(task['id']),
-          ),
-        ],
-      );
-    },
-  ),
-)
-,
+),
+  SizedBox(height: 40),
           ],
         ),
       ),

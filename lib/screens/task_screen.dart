@@ -156,51 +156,60 @@ Future<void> _selectDate(BuildContext context) async {
               const SizedBox(height: 40),
 
               // Botão de criação de tarefa
-              _isLoading
-                  ? const RoundButtonCircularProgress()
-                  : RoundButton(
-                      title: "CRIAR TAREFA",
-                      onPressed: () async {
-                        String taskTitle = _taskTitleController.text;
-                        String taskDescription = _taskDescriptionController.text;
+              // Botão de criação de tarefa
+_isLoading
+    ? const RoundButtonCircularProgress()
+    : RoundButton(
+        title: "CRIAR TAREFA",
+        onPressed: () async {
+          String taskTitle = _taskTitleController.text;
+          String taskDescription = _taskDescriptionController.text;
 
-                        // Validações para garantir que os campos não estão vazios
-                        if (taskTitle.isEmpty || taskDescription.isEmpty || selectedDate == null) {
-                          Get.snackbar(
-                            "Erro",
-                            "Por favor, preencha todos os campos.",
-                            backgroundColor: Colors.red,
-                            colorText: ThemeColor.primary,
-                          );
-                          return;
-                        }
+          // Validações para garantir que os campos não estão vazios
+          if (taskTitle.isEmpty || taskDescription.isEmpty || selectedDate == null) {
+            Get.snackbar(
+              "Erro",
+              "Por favor, preencha todos os campos.",
+              backgroundColor: Colors.red,
+              colorText: ThemeColor.primary,
+            );
+            return;
+          }
 
-                        setState(() {
-                          _isLoading = true;
-                        });
+          setState(() {
+            _isLoading = true;
+          });
 
-                        // Aqui você pode adicionar a lógica para criar a tarefa
-                        bool success = await createTask({
-                          'title': taskTitle,
-                          'description': taskDescription,
-                          'time': selectedDate?.toIso8601String() ?? '',
-                        });
+          // Aqui você pode adicionar a lógica para criar a tarefa
+          bool success = await createTask({
+            'title': taskTitle,
+            'description': taskDescription,
+            'time': selectedDate?.toIso8601String() ?? '',
+          });
 
-                        setState(() {
-                          _isLoading = false;
-                        });
+          setState(() {
+            _isLoading = false;
+          });
 
-                        if (success) {
-                          Get.snackbar(
-                            "Sucesso",
-                            "Tarefa criada com sucesso!",
-                            backgroundColor: Colors.green,
-                            colorText: ThemeColor.primary,
-                          );
-                          // Navegar para outra tela ou mostrar a lista de tarefas
-                        }
-                      },
-                    ),
+          if (success) {
+            // Exibir mensagem de sucesso
+            Get.snackbar(
+              "Sucesso",
+              "Tarefa criada com sucesso!",
+              backgroundColor: Colors.green,
+              colorText: ThemeColor.primary,
+            );
+
+            // Limpar os campos
+            _taskTitleController.clear();
+            _taskDescriptionController.clear();
+            setState(() {
+              selectedDate = null;
+            });
+          }
+        },
+      ),
+
 
               const SizedBox(height: 20),
 

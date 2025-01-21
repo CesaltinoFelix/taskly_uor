@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart'; // Para formatar a data
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskly_uor/common/color_extension.dart';
 import 'package:taskly_uor/repositories/task_repository.dart';
 import 'package:taskly_uor/screens/home_screen.dart';
@@ -179,7 +180,7 @@ _isLoading
           setState(() {
             _isLoading = true;
           });
-
+            
           // Aqui você pode adicionar a lógica para criar a tarefa
           bool success = await createTask({
             'title': taskTitle,
@@ -257,8 +258,10 @@ _isLoading
       );
       return false;
     }
-
-    task['user_id'] = task['user_id'] ?? 1;
+    final prefs = await SharedPreferences.getInstance();
+    String? userContact = prefs.getString('contact');
+    final userId = await taskRepository.getUserIdByContact(userContact!);
+    task['user_id'] = task['user_id'] ?? userId;
     task['is_done'] = task['is_done'] ?? 0;
     task['created_at'] = task['created_at'] ?? DateTime.now().toIso8601String();
     task['description'] = task['description'] ?? '';

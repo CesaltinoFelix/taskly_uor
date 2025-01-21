@@ -135,4 +135,31 @@ class TaskRepository {
       print("Erro ao excluir tarefas: $e");
     }
   }
+
+  Future<int?> getUserIdByContact(String contact) async {
+  final db = await DatabaseService.getDatabase(); // Assuma que o método para abrir o DB já existe
+  final result = await db.query(
+    'users',
+    columns: ['id'],
+    where: 'contact = ?',
+    whereArgs: [contact],
+    limit: 1,
+  );
+
+  if (result.isNotEmpty) {
+    return result.first['id'] as int;
+  }
+  return null;
+}
+
+Future<List<Map<String, dynamic>>> getTasksByUserId(int userId) async {
+  final db = await  DatabaseService.getDatabase(); 
+  final result = await db.query(
+    'tasks',
+    where: 'user_id = ?',
+    whereArgs: [userId],
+  );
+  return result;
+}
+
 }

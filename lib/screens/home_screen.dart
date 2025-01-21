@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taskly_uor/common/color_extension.dart';
 import 'package:taskly_uor/repositories/task_repository.dart';
+import 'package:taskly_uor/screens/Task_statistics_screen.dart';
 import 'package:taskly_uor/screens/sign_in_screen.dart';
 import 'package:taskly_uor/screens/task_history_screen.dart';
 import 'package:taskly_uor/screens/task_screen.dart';
@@ -25,12 +26,35 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadTasks();
   }
 
-  void _loadTasks() async {
-    final loadedTasks = await _taskRepository.getTasks();
+void _loadTasks() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? userContact = prefs.getString('contact'); // Recupera o contato do usuário logado
+  if (userContact == null || userContact.isEmpty) {
     setState(() {
-      tasks = loadedTasks;
+      tasks = [];
     });
+    return;
   }
+
+  // Obtenha o user_id associado ao contato
+  final userId = await _taskRepository.getUserIdByContact(userContact);
+
+  if (userId == null) {
+    setState(() {
+      tasks = [];
+    });
+    return;
+  }
+
+  // Filtre as tarefas pelo user_id
+  final loadedTasks = await _taskRepository.getTasksByUserId(userId);
+  print(loadedTasks);
+  setState(() {
+    tasks = loadedTasks;
+  });
+
+}
+
 
   void _markAsDone(int taskId) async {
     await _taskRepository.markTaskAsDone(taskId);
@@ -107,7 +131,14 @@ String formatTaskCreationDate(String createdAt) {
           ),
         );
       }
-      // Implementar navegação para outras telas, se necessário
+      if (index == 2) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TaskStatisticsScreen(),
+          ),
+        );
+      }
     });
   }
 
@@ -124,13 +155,7 @@ Color _getSelectedItemColor(int index) {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const Padding(
-          padding: EdgeInsets.only(left: 16),
-          child: Icon(
-            Icons.menu,
-            color: Colors.black87,
-          ),
-        ),
+        
         title:  Text(
           'Minhas tarefas',
           style: TextStyle(
@@ -140,11 +165,11 @@ Color _getSelectedItemColor(int index) {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            color: Colors.black87,
-            onPressed: () {},
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.notifications_outlined),
+          //   color: Colors.black87,
+          //   onPressed: () {},
+          // ),
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             color: Colors.black87,
@@ -166,38 +191,42 @@ Color _getSelectedItemColor(int index) {
             ),
             const SizedBox(height: 8),
             Expanded(
-            child: ListView.builder(
-              itemCount: tasks.length,
-              itemBuilder: (context, index) {
-                final task = tasks[index];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (index == 0 || task['created_at'] != tasks[index - 1]['created_at'])
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16, bottom: 8),
-                        child: Text(
-                          formatTaskCreationDate(task['created_at']),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ),
-                    _buildTaskCard(
-                      taskId: task['id'],
-                      title: task['title'],
-                      description: task['description'],
-                      time: formatTaskTime(task['time']),
-                      isDone: task['is_done'] == 1,
-                      onDelete: () => _deleteTask(task['id']),
-                      onMarkDone: () => _markAsDone(task['id']),
-                    ),
-                  ],
-                );
-              },
+  child: ListView.builder(
+    itemCount: tasks.where((task) => task['is_done'] == 0).length,
+    itemBuilder: (context, index) {
+      // Filtra apenas tarefas não concluídas
+      final filteredTasks = tasks.where((task) => task['is_done'] == 0).toList();
+      final task = filteredTasks[index];
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (index == 0 || task['created_at'] != filteredTasks[index - 1]['created_at'])
+            Padding(
+              padding: const EdgeInsets.only(top: 16, bottom: 8),
+              child: Text(
+                formatTaskCreationDate(task['created_at']),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
             ),
+          _buildTaskCard(
+            taskId: task['id'],
+            title: task['title'],
+            description: task['description'],
+            time: formatTaskTime(task['time']),
+            isDone: task['is_done'] == 1,
+            onDelete: () => _deleteTask(task['id']),
+            onMarkDone: () => _markAsDone(task['id']),
+          ),
+        ],
+      );
+    },
+  ),
 ),
+
   SizedBox(height: 40),
           ],
         ),
